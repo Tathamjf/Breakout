@@ -1,4 +1,4 @@
-import { Actor, CollisionType, Color, Engine, vec } from "excalibur"
+import { Actor, CollisionType, Color, Text, Engine, vec, Font } from "excalibur"
 
 // 1 - Criar uma instancia de Engine, que representa o jogo
 const game = new Engine({
@@ -12,7 +12,8 @@ const barra = new Actor({
 	y: game.drawHeight - 40,
 	width: 200,
 	height: 20,
-	color: Color.Chartreuse
+	color: Color.Chartreuse,
+	name: "Barra"
 })
 
 // Define o tipo de colisão da barra
@@ -40,7 +41,7 @@ const bolinha = new Actor({
 
 
 // 5 - Criar movimentação da bolinha
-const velocidadeBolinha = vec(200, 200)
+const velocidadeBolinha = vec(700, 700)
 
 // Após 1 segundo (1000 ms), define a velocidade da bolinha em x = 100 e y = 100
 setTimeout(() => {
@@ -81,18 +82,94 @@ game.add(bolinha)
 const padding = 20
 
 const xoffset = 65
-const voffset = 20
+const yoffset = 20
 
 const colunas = 5
 const linhas = 3
 
-const corBloco = [Color.Violet, Color.Orange, Color.Yellow]
+const corBloco = [Color.Red, Color.Orange, Color.Yellow]
 
 const larguraBloco = (game.drawWidth / colunas) - padding - (padding / colunas) ;
 // const larguraBloco = 136
 const alturaBloco = 30
 
 const listaBlocos: Actor[] = []
+
+
+// Rederiza cada linha, renderiza 3 linhas
+for(let j = 0; j < linhas; j++){
+
+	// Rederização dos bloquinhos, rederiza 5 bloquinhos
+	for(let i = 0; i < colunas; i++) {
+		listaBlocos.push(
+			new Actor({
+				x: xoffset + i * (larguraBloco + padding) + padding,
+				y: yoffset + j * (alturaBloco + padding) + padding,
+				width: larguraBloco,
+				height: alturaBloco,
+				color: corBloco[j]
+			})
+		)
+	}
+
+}
+
+listaBlocos.forEach( bloco => {
+	bloco.body.collisionType = CollisionType.Active
+	game.add(bloco)
+} )
+
+// Adicionando pontuação
+let pontos = 0
+
+const textoPontos = new Text({
+	text: "Pontos: " + pontos,
+	font: new Font({ size: 30, color: Color.White})
+})
+
+const textObject = new Actor ({
+	x: game.drawWidth - 100,
+	y: game.drawHeight - 50
+})
+
+textObject.graphics.use(textoPontos)
+ game.add(textObject)
+
+let colidindo: boolean = false 
+
+bolinha.on("collisionstart", (event) => {
+	// Verificar se a bolinha colidiu com algum bloco destrutivel
+	console.log("Colidiu com", event.other)
+
+	// Se o elemento colidido for um bloco da lista de blocos 
+	if (listaBlocos.includes(event.other)) {
+		event.other.kill()
+	}
+
+	// Rebater a bolinha = inverter as direções
+	let intersecção = event.contact.mtv.normalize()
+	if (!colidindo) {
+		colidindo = true
+		 
+		// Intersecção 
+		if ( Math.abs(intersecção.x) > Math.abs(intersecção.y) ){
+			// bolinha.vel.x = bolinha.vel.x * -1
+			// bolinha.vel.x *= -1
+			bolinha.vel.x = bolinha.vel.x * -1
+		} else {
+			bolinha.vel.y = bolinha.vel.y * -1
+		}
+	}
+})
+
+bolinha.on("collisionend", () => {
+	colidindo = false
+})
+
+bolinha.on("exitviewport", () => {
+	alert("Foi de BASE")
+	window.location.reload()
+})
 
 
 
