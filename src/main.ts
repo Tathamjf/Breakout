@@ -52,6 +52,11 @@ setTimeout(() => {
 // 6 - Fazer bolinha bater na barra
 bolinha.body.collisionType = CollisionType.Passive
 
+let corBolinha = [Color.Red, Color.Blue, Color.Magenta, Color.Orange]
+
+let numCoresBolinha = corBolinha.length
+
+
 
 // Colisão da bolinha com as extrimidades do quadro azul
 
@@ -155,13 +160,26 @@ game.add(textoPontos)
 
 
 let colidindo: boolean = false
+
 const sound = new Sound('./songs/som-bolinha.mp3');
-const loader = new Loader([sound]);
+const gameOverSound = new Sound('./songs/queda.mp3')
+const gameStartSound = new Sound('./songs/startGame.mp3')
+
+
+
+const loader = new Loader([sound, gameOverSound, gameStartSound]);
+
+bolinha.on("exitviewport", () => {
+	gameOverSound.play(0.5)
+	alert("Foi de BASE")
+	window.location.reload()
+})
 
 bolinha.on("collisionstart", (event) => {
 	if (pontos < blocos) {
 		// Verificar se a bolinha colidiu com algum bloco destrutivel
 		console.log("Colidiu com", event.other)
+
 
 		// Se o elemento colidido for um bloco da lista de blocos 
 		if (listaBlocos.includes(event.other)) {
@@ -170,7 +188,10 @@ bolinha.on("collisionstart", (event) => {
 			pontos++
 			textoPontos.text = pontos.toString()
 
-			console.log(pontos);
+			// Mudar a cor da bolinha
+			bolinha.color = event.other.color
+			// corBolinha[Math.trunc(Math.random() * numCoresBolinha)]
+
 			sound.play(0.5)
 		}
 
@@ -189,8 +210,12 @@ bolinha.on("collisionstart", (event) => {
 				bolinha.vel.y = bolinha.vel.y * -1
 			}
 		}
+
+		
+
 	} else {
 		alert("Parabéns você venceu!")
+		window.location.reload()
 	}
 })
 
@@ -200,12 +225,10 @@ bolinha.on("collisionend", () => {
 	colidindo = false
 })
 
-bolinha.on("exitviewport", () => {
-	alert("Foi de BASE")
-	window.location.reload()
-	queda.play(0.5)
-})
 
+game.on("start", () => {
+	gameStartSound.play(0.3)
+})
 
 
 
